@@ -1,7 +1,13 @@
 <template>
-  <h2>
+  <div class="section">
     VIEW PLAY
-  </h2>
+  </div>
+  <div class="section">
+    VIEW PLAY
+  </div>
+  <div class="section">
+    VIEW PLAY
+  </div>
 </template>
 
 <script>
@@ -9,3 +15,15 @@ export default {
   name: 'ViewPlay',
 }
 </script>
+
+<style lang="scss">
+@import '../styles/colors';
+
+.section {
+  min-height: 20vh;
+  background-color: $color_main;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+</style>

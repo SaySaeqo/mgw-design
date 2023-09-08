@@ -1,10 +1,11 @@
 <template>
-  <header>
-    <img src="@/assets/menu_icon.svg" @click="() => isOpen = !isOpen">
+  <header :class="{open: isHeaderOpen}">
+    <img src="@/assets/menu_icon.svg" @click="() => [isNavHidden, isNavOpen] = [false, !isNavOpen]">
     <router-link to="/settings"><img src="@/assets/cog_icon.svg"></router-link>
   </header>
-  <nav :class="{open: isOpen}">
+  <nav :class="{hidden: isNavHidden, open: isNavOpen}">
     <ul>
+      <li><img src="@/assets/menu_icon.svg" @click="() => [isNavHidden, isNavOpen] = [false, !isNavOpen]"></li>
       <li>
         <router-link to="/profile"><img src="@/assets/user_icon.svg"></router-link>
         <router-link to="/"><div class="box">Graj</div></router-link>
@@ -15,15 +16,35 @@
       <li><router-link to="/login"><div class="box">Zaloguj</div></router-link></li>
     </ul>
   </nav>
-  <router-view/>
+  <div class="container">
+    <div class="logo">
+      <img src="http://i.imgur.com/S9uIab8.png">
+    </div>
+    <router-view/>
+  </div>
 </template>
 
 <script>
 export default {
   name: 'App',
   data: () => ({
-     isOpen: true 
+     isNavOpen: false,
+     isNavHidden: true,
+     isHeaderOpen: true,
+     scrollY: 0
+    }),
+  beforeMount(){
+    this.$router.afterEach(()=>{
+      this.isNavOpen = false
+      this.isNavHidden = true
+      this.isHeaderOpen = true
     })
+
+    window.addEventListener("scroll", ()=>{
+      this.isHeaderOpen = window.scrollY <= this.scrollY
+      this.scrollY = window.scrollY
+    })
+  }
 }
 </script>
 
@@ -31,10 +52,22 @@ export default {
 @import 'styles/colors';
 
 header {
+  position: fixed;
+  width: 100%;
   display: flex;
   justify-content: space-between;
-  height: 3em;
+  height: 0;
   background-color: $color-main;
+  transition: height 0.2s linear;
+  overflow: hidden;
+  align-items: center;
+
+  img {
+    height: 3em;
+  }
+}
+header.open{
+  height: 3em;
 }
 
 img {
@@ -49,7 +82,6 @@ nav{
   height: 100%;
   width: 0;
   overflow: hidden;
-  margin-top: 3em;
   transition: width 0.2s linear;
 
   ul {
@@ -66,6 +98,9 @@ nav{
     margin: 0.3em;
     display: flex;
   }
+  li:first-child{
+    margin: 0;
+  }
 
   a {
     text-decoration: none;
@@ -73,7 +108,7 @@ nav{
     flex: 1;
   }
 
-  li:first-child a:first-child {
+  li:nth-child(2) a:first-child {
     flex: 0;
   }
 
@@ -86,7 +121,7 @@ nav{
     justify-content: center;
   }
 
-  img {
+  a img {
     border: 0.2em solid $color-darker;
     border-radius: 2em;
   }
@@ -95,5 +130,24 @@ nav{
 }
 nav.open{
   width: 15em;
+}
+.hidden {
+  visibility: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1em;
+  margin: 4em 1em 1em 1em;
+}
+
+.logo {
+  display: flex;
+
+  img {
+    flex: 1;
+  }
 }
 </style>
