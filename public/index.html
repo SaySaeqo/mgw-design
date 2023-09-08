@@ -7,11 +7,19 @@
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title><%= htmlWebpackPlugin.options.title %></title>
     <style>
-      body, #app {
+      body {
+        display: flex;
+        margin: 0;
+      }
+      #app {
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        text-align: center;
+        color: #2c3e50;
         display: flex;
         flex-direction: column;
         flex: 1;
-      }
+        align-items: stretch;
+     }
     </style>
   </head>
   <body>

@@ -1,7 +1,8 @@
 <template>
-  <h2>
-    VIEW MANAGMENT
-  </h2>
+  <div class="section"><span>Aktualności</span></div>
+  <div class="section"><span>Strażnicy</span></div>
+  <div class="section"><span>Propozycje</span></div>
+  <div class="section"><span>Kontakt</span></div>
 </template>
 
 <script>

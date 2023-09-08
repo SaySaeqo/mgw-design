@@ -1,9 +1,12 @@
 <template>
   <header :class="{open: isHeaderOpen}">
     <img src="@/assets/menu_icon.svg" @click="() => [isNavHidden, isNavOpen] = [false, !isNavOpen]">
-    <router-link to="/settings"><img src="@/assets/cog_icon.svg"></router-link>
+    <div style="display: flex; gap: 1em;">
+      <router-link to="/help"><img src="@/assets/mark_question_circle_icon.svg"></router-link>
+      <router-link to="/settings"><img src="@/assets/cog_icon.svg"></router-link>
+    </div>
   </header>
-  <nav :class="{hidden: isNavHidden, open: isNavOpen}">
+  <nav :class="{hidden: isNavHidden, open: isNavOpen}" ref="nav">
     <ul>
       <li><img src="@/assets/menu_icon.svg" @click="() => [isNavHidden, isNavOpen] = [false, !isNavOpen]"></li>
       <li>
@@ -16,12 +19,9 @@
       <li><router-link to="/login"><div class="box">Zaloguj</div></router-link></li>
     </ul>
   </nav>
-  <div class="container">
-    <div class="logo">
-      <img src="http://i.imgur.com/S9uIab8.png">
-    </div>
-    <router-view/>
-  </div>
+  <div class="logo"><img src="http://i.imgur.com/S9uIab8.png"></div>
+  <div class="container"><router-view class="container"/></div>
+  <footer><span>kontakt: <a href="mailto:saysaeqo@gmail.com">saysaeqo@gmail.com</a></span></footer>
 </template>
 
 <script>
@@ -44,12 +44,27 @@ export default {
       this.isHeaderOpen = window.scrollY <= this.scrollY
       this.scrollY = window.scrollY
     })
+  },
+
+  mounted(){
+    const _this = this
+    window.addEventListener("mouseup", function(event){
+      let element = event.target
+      let maxCount = 5
+      while (element && maxCount > 0){
+        if (element == _this.$refs.nav) return
+        element = element.parentNode
+        maxCount--
+      }
+      _this.isNavOpen = false
+      _this.isNavHidden = true
+    });
   }
 }
 </script>
 
-<style lang="scss">
-@import 'styles/colors';
+<style lang="scss" scoped>
+@import "styles/colors";
 
 header {
   position: fixed;
@@ -92,9 +107,15 @@ nav{
     list-style: none;
     margin: 0;
     padding: 0;
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  ul::-webkit-scrollbar {
+    display: none;
   }
   li{
-    height: 3em;
+    min-height: 3em;
     margin: 0.3em;
     display: flex;
   }
@@ -130,6 +151,7 @@ nav{
 }
 nav.open{
   width: 15em;
+  max-width: 100%;
 }
 .hidden {
   visibility: hidden;
@@ -138,16 +160,33 @@ nav.open{
 .container {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  align-self: stretch;
   flex: 1;
   gap: 1em;
-  margin: 4em 1em 1em 1em;
+  margin: 1em 1em 1em 1em;
 }
 
 .logo {
   display: flex;
-
+  margin-top: 3.5em;
   img {
+    max-width: 100%;
     flex: 1;
   }
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1em;
+}
+
+@media only screen and (min-width: 800px) {
+  .container{
+    align-self: center;
+    width: 800px;
+  }
+  
 }
 </style>

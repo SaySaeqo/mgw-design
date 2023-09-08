@@ -6,6 +6,7 @@ import Managment from './views/Managment.vue'
 import Settings from './views/Settings.vue'
 import Login from './views/Login.vue'
 import Profile from './views/Profile.vue'
+import Help from './views/Help.vue'
 
 const routes = [
   {
@@ -42,6 +43,11 @@ const routes = [
     path: '/profile',
     name: 'profile',
     component: Profile
+  },
+  {
+    path: '/help',
+    name: 'help',
+    component: Help
   }
   
 ]
