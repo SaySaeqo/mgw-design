@@ -1,4 +1,4 @@
-# mgw-vue
+# mgw-design
 
 ## Project setup
 ```

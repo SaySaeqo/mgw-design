@@ -1,6 +1,6 @@
 {
-  "name": "mgw-vue",
-  "version": "0.1.0",
+  "name": "mgw-design",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
