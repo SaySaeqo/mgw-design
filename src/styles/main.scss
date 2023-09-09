@@ -1,5 +1,23 @@
 @import "colors";
 
+body {
+    display: flex;
+    margin: 0;
+    background-color: $color_dark;
+}
+#app {
+font-family: Avenir, Helvetica, Arial, sans-serif;
+text-align: center;
+display: flex;
+flex-direction: column;
+flex: 1;
+align-items: stretch;
+}
+
+*{
+    color: $color_light;
+}
+
 .section {
     min-height: 20vh;
     background-color: $color_main;

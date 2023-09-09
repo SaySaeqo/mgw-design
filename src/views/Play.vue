@@ -112,7 +112,7 @@ export default {
 }
 
 td {
-    border: 0.2em solid $color_darker;
+    border: 0.2em solid $color_lighter;
     padding: 1.8em;
     box-sizing: border-box;
     background-color: $color_darker;
