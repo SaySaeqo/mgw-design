@@ -1,7 +1,7 @@
 <template>
     <h2>Planowany design:</h2>
-    <a href="img/mgw_design.35081a97.jpg" target="blank">
-        <img src="@/assets/mgw_design.jpg" /> 
+    <a href="img/mgw_design.jpg" target="blank">
+        <img src="img/mgw_design.jpg" /> 
     </a>
   </template>
   

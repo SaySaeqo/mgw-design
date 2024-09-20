@@ -145,6 +145,10 @@ nav{
   a img {
     border: 0.2em solid $color-darker;
     border-radius: 2em;
+    height: 2.5em;
+    width: 2.5em;
+    padding: 0.25em;
+
   }
 
   
