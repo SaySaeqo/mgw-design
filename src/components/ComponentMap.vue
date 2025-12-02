@@ -1,6 +1,5 @@
 <template>
-  <div class="map-container" ref="containerRef" @mousedown="startDrag" @mousemove="drag" @mouseup="stopDrag" @mouseleave="stopDrag"
-      @wheel="handleZoom">
+  <div class="map-container" ref="containerRef" @mousedown="startDrag" @mousemove="drag" @mouseup="stopDrag" @mouseleave="stopDrag">
       <div class="map-image" :style="{
         backgroundImage: `url(${backgroundImage})`,
         transform: `translate(${position.x}px, ${position.y}px) scale(${currentScale})`,
@@ -16,12 +15,18 @@
         <div class="point-circle"></div>
         <div class="point-pulse"></div>
       </div>
+      <!-- Zoom buttons -->
+      <div class="zoom-controls">
+        <button @click="handleZoom(0.2)">+</button>
+        <button @click="handleZoom(-0.2)">-</button>
+      </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, watch, defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePinch } from '@vueuse/gesture'
 
 const router = useRouter()
 
@@ -116,22 +121,18 @@ const stopDrag = () => {
   document.body.style.cursor = 'default'
 }
 
-const handleZoom = (event) => {
-  event.preventDefault()
-
-  const delta = event.deltaY > 0 ? -0.2 : 0.2
+const handleZoom = (delta, origin = [0,0]) => {
   const newScale = Math.max(props.minScale, Math.min(props.maxScale, currentScale.value + delta))
 
   if (newScale !== currentScale.value) {
     // Calculate zoom center point
     const rect = containerRef.value.getBoundingClientRect()
-    const centerX = (event.clientX - rect.left - position.x) / currentScale.value
-    const centerY = (event.clientY - rect.top - position.y) / currentScale.value
+    const centerX = (origin[0] - rect.left - position.x) / currentScale.value
+    const centerY = (origin[1] - rect.top - position.y) / currentScale.value
 
     // Adjust position to zoom towards cursor
-    const newX = event.clientX - rect.left - centerX * newScale
-    const newY = event.clientY - rect.top - centerY * newScale
-
+    const newX = origin[0] - rect.left - centerX * newScale
+    const newY = origin[1] - rect.top - centerY * newScale
     // Apply constraints after zoom
     currentScale.value = newScale
     const constrained = constrainPosition(newX, newY)
@@ -140,6 +141,19 @@ const handleZoom = (event) => {
 
   }
 }
+
+const handlePinch = (state) => {
+  state.event.preventDefault()
+  const origin = state.origin
+  const zoom = state.offset[0]
+  const delta = zoom * 0.001
+  handleZoom(delta, origin)
+}
+
+usePinch(handlePinch, {
+  domTarget: containerRef,
+  eventOptions: { passive: false }
+});
 
 const handlePointClick = (point) => {
   emit('pointClick', point)
@@ -270,5 +284,27 @@ onMounted(() => {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.zoom-controls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+  z-index: 20;
+}
+
+.zoom-controls button {
+  width: 2em;
+  height: 2em;
+  background: rgba(255, 255, 255, 1);
+  border: none;
+  border-radius: 4px;
+  font-size: 2em;
+  line-height: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  color: black;
 }
 </style>
