@@ -7,6 +7,7 @@ import Settings from './views/Settings.vue'
 import Login from './views/Login.vue'
 import Profile from './views/Profile.vue'
 import Help from './views/Help.vue'
+import ForumThread from './views/ForumThread.vue'
 
 const routes = [
   {
@@ -48,6 +49,12 @@ const routes = [
     path: '/help',
     name: 'help',
     component: Help
+  },
+  {
+    path: '/thread/:threadId',
+    name: 'thread',
+    component: ForumThread,
+    props: true
   }
   
 ]

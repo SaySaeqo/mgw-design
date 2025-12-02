@@ -31,21 +31,22 @@
     <ComponentMap :backgroundImage="mapImage" :points="mapPoints" />
   </div>
   <div class="section">
-    <span>LOKACJA 1</span>
-    <span>LOKACJA 2</span>
-    <span>LOKACJA 3</span>
-    <span>LOKACJA 4</span>
+    <RouterLink to="/thread/1"><span>LOKACJA 1</span></RouterLink>
+    <RouterLink to="/thread/2"><span>LOKACJA 2</span></RouterLink>
+    <RouterLink to="/thread/3"><span>LOKACJA 3</span></RouterLink>
+    <RouterLink to="/thread/4"><span>LOKACJA 4</span></RouterLink>
   </div>
 </template>
 
 <script setup>
 
 import ComponentMap from '@/components/ComponentMap.vue';
+import { RouterLink } from 'vue-router';
 
 const mapImage = require('@/assets/fantasy-map.jpg');
 const mapPoints = [
-  { x: 793, y: 412, title: "Latarnia", link: "/help"},
-  { x: 570, y: 334, title: "Miasto", link: "/help" }
+  { x: 793, y: 412, title: "Latarnia", link: "/thread/123" },
+  { x: 570, y: 334, title: "Miasto", link: "/thread/234" }
 ];
 
 

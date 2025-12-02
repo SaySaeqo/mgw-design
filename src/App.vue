@@ -186,11 +186,11 @@ footer {
   margin-bottom: 1em;
 }
 
-@media only screen and (min-width: 800px) {
-  .container{
-    align-self: center;
-    width: 800px;
+  @media only screen and (min-width: 1000px) {
+    .container{
+      align-self: center;
+      width: 60%;
+    }
+    
   }
-  
-}
 </style>
