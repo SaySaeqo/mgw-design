@@ -4,10 +4,11 @@ import World from './views/World.vue'
 import Mechanics from './views/Mechanics.vue'
 import Managment from './views/Managment.vue'
 import Settings from './views/Settings.vue'
-import Login from './views/Login.vue'
+import Login from './views/ViewLogin.vue'
 import Profile from './views/Profile.vue'
 import Help from './views/Help.vue'
 import ForumThread from './views/ForumThread.vue'
+import SignUp from './views/ViewSignUp.vue'
 
 const routes = [
   {
@@ -39,6 +40,11 @@ const routes = [
     path: '/login',
     name: 'login',
     component: Login
+  },
+  {
+    path: '/signup',
+    name: 'signup',
+    component: SignUp
   },
   {
     path: '/profile',
