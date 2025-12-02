@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Play from './views/Play.vue'
+import Play from './views/ViewPlay.vue'
 import World from './views/World.vue'
 import Mechanics from './views/Mechanics.vue'
 import Managment from './views/Managment.vue'

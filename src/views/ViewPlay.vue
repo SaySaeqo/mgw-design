@@ -28,7 +28,7 @@
     <span>Dodatkowe informacje</span>
   </div>
   <div class="section">
-    <span>MAPA</span>
+    <ComponentMap :backgroundImage="mapImage" :points="mapPoints" />
   </div>
   <div class="section">
     <span>LOKACJA 1</span>
@@ -38,10 +38,18 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ViewPlay',
-}
+<script setup>
+
+import ComponentMap from '@/components/ComponentMap.vue';
+
+const mapImage = require('@/assets/fantasy-map.jpg');
+const mapPoints = [
+  { x: 793, y: 412, title: "Latarnia", link: "/help"},
+  { x: 570, y: 334, title: "Miasto", link: "/help" }
+];
+
+
+
 </script>
 
 <style lang="scss" scoped>
