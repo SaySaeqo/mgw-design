@@ -3,21 +3,9 @@ My take for proposing design of modern PBF-oriented page. Primarly for PBF named
 
 # Setup
 
-Create `.env.local` file in current directory:
-
-```
-# ./.env.local
-
-MONGODB_URI=
-MONGODB_DB_NAME=
-MONGODB_COLLECTION_NAME=
-API_PORT=3000
-VUE_APP_API_URL=http://localhost:3000
-```
-
-Create mongodb database with empty collection and fill .env file mentioned above.  
-Then run in the terminal:
-
+1. Start local mysql server.
+2. Run [schema.sql](./schema.sql) using your mysql server's root user.
+3. Install all node dependencies:
 ```
 cd express
 npm install
@@ -26,5 +14,8 @@ npm update
 cd ..
 npm install
 npm update
+```
+4. Run backend and frontend locally:
+```
 npm run dev
 ```
