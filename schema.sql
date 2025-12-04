@@ -390,7 +390,7 @@ INSERT INTO forum_categories (name, description, slug, color, icon, sort_order) 
 
 -- Insert default admin user
 INSERT INTO users (username, email, password_hash, first_name, last_name, email_verified, is_active) VALUES
-('admin', 'admin@example.com', 'hashed_password', 'Admin', 'User', TRUE, TRUE);
+('admin', 'admin@example.com', '$2b$10$FMoxJ3xoI/2DM7guDmD7.u7UB347FUpnrgcZcX9R8SSUTh1r6WmMq', 'Admin', 'User', TRUE, TRUE);
 
 -- Insert sample map
 INSERT INTO maps (name, description, image_url, image_width, image_height, slug, created_by) VALUES

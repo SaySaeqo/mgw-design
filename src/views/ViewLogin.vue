@@ -87,6 +87,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import axios from 'axios'
+import { jwtDecode } from "jwt-decode";
 
 const router = useRouter()
 
@@ -138,8 +140,6 @@ const validateForm = () => {
   // Validate password
   if (!loginForm.password) {
     errors.password = 'Password is required'
-  } else if (loginForm.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters'
   }
 
   return !errors.email && !errors.password
@@ -163,21 +163,26 @@ const handleLogin = async () => {
   isLoading.value = true
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Mock successful login
-    const mockUser = {
-      id: 1,
+    // API call
+    console.log("Attempting login for: '" + loginForm.email + "'");
+    const response = await axios.post("/api/login", {
       email: loginForm.email,
-      name: 'John Doe',
-      token: 'mock-jwt-token'
+      password: loginForm.password
+    });
+
+    if (response.data.success !== true) {
+      throw new Error(response.data.message || 'Login failed');
     }
 
+    const token = response.data.token;
+
+    // Mock successful login
+    const user = jwtDecode(token);
+
     // Store user data (in real app, you'd use a store like Pinia)
-    localStorage.setItem('user', JSON.stringify(mockUser))
+    sessionStorage.setItem('jwt', JSON.stringify(user))
     if (loginForm.rememberMe) {
-      localStorage.setItem('rememberLogin', 'true')
+      localStorage.setItem('jwt', JSON.stringify(user))
     }
 
     showMessage('Login successful! Redirecting...', 'success')
