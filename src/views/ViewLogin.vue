@@ -8,19 +8,18 @@
 
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
-          <label for="email" class="form-label">Email</label>
+          <label for="username" class="form-label">Username/Email</label>
           <input
-            id="email"
-            v-model="loginForm.email"
-            type="email"
+            id="username"
+            v-model="loginForm.username"
+            type="text"
             class="form-input"
-            :class="{ 'error': errors.email }"
-            placeholder="Enter your email"
+            :class="{ 'error': errors.username }"
+            placeholder="Enter your username or email"
             required
           />
-          <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
+          <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
         </div>
-
         <div class="form-group">
           <label for="password" class="form-label">Password</label>
           <div class="password-input">
@@ -88,13 +87,18 @@
 import { ref, reactive } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import axios from 'axios'
-import { jwtDecode } from "jwt-decode";
+import { isLoggedIn } from '@/models/user';
 
 const router = useRouter()
 
+// Redirect if already logged in
+if (isLoggedIn()) {
+  router.replace('/');
+}
+
 // Reactive form data
 const loginForm = reactive({
-  email: '',
+  username: '',
   password: '',
   rememberMe: false
 })
@@ -107,7 +111,7 @@ const messageType = ref('success') // 'success' or 'error'
 
 // Reactive errors
 const errors = reactive({
-  email: '',
+  username: '',
   password: ''
 })
 
@@ -120,21 +124,15 @@ const errors = reactive({
 // })
 
 // Methods
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
-}
 
 const validateForm = () => {
   // Clear previous errors
-  errors.email = ''
+  errors.username = ''
   errors.password = ''
 
-  // Validate email
-  if (!loginForm.email) {
-    errors.email = 'Email is required'
-  } else if (!validateEmail(loginForm.email)) {
-    errors.email = 'Please enter a valid email'
+  // Validate username/email
+  if (!loginForm.username) {
+    errors.username = 'Username/Email is required'
   }
 
   // Validate password
@@ -142,7 +140,7 @@ const validateForm = () => {
     errors.password = 'Password is required'
   }
 
-  return !errors.email && !errors.password
+  return !errors.username && !errors.password
 }
 
 const togglePassword = () => {
@@ -164,9 +162,9 @@ const handleLogin = async () => {
   
   try {
     // API call
-    console.log("Attempting login for: '" + loginForm.email + "'");
+    console.log("Attempting login for: '" + loginForm.username + "'");
     const response = await axios.post("/api/login", {
-      email: loginForm.email,
+      username: loginForm.username,
       password: loginForm.password
     });
 
@@ -176,13 +174,10 @@ const handleLogin = async () => {
 
     const token = response.data.token;
 
-    // Mock successful login
-    const user = jwtDecode(token);
-
     // Store user data (in real app, you'd use a store like Pinia)
-    sessionStorage.setItem('jwt', JSON.stringify(user))
+    sessionStorage.setItem('jwt', token)
     if (loginForm.rememberMe) {
-      localStorage.setItem('jwt', JSON.stringify(user))
+      localStorage.setItem('jwt', token)
     }
 
     showMessage('Login successful! Redirecting...', 'success')
@@ -194,26 +189,12 @@ const handleLogin = async () => {
 
   } catch (error) {
     console.error('Login error:', error)
-    showMessage('Invalid email or password. Please try again.', 'error')
+    showMessage('Invalid username/email or password. Please try again.', 'error')
   } finally {
     isLoading.value = false
   }
 }
 
-// Watch for real-time validation
-import { watch } from 'vue'
-
-watch(() => loginForm.email, (newEmail) => {
-  if (newEmail && errors.email) {
-    errors.email = validateEmail(newEmail) ? '' : 'Please enter a valid email'
-  }
-})
-
-watch(() => loginForm.password, (newPassword) => {
-  if (newPassword && errors.password) {
-    errors.password = newPassword.length >= 6 ? '' : 'Password must be at least 6 characters'
-  }
-})
 </script>
 
 <style scoped>
