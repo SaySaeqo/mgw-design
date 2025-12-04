@@ -34,7 +34,8 @@ CREATE TABLE users (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_login DATETIME,
     login_attempts INTEGER DEFAULT 0,
-    locked_until DATETIME
+    locked_until DATETIME,
+    post_count INTEGER DEFAULT 0
 );
 
 -- User privileges/roles table
@@ -42,7 +43,8 @@ CREATE TABLE user_roles (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    privilege_level INTEGER DEFAULT 0
 );
 
 -- Junction table for user-role relationships (many-to-many)
@@ -292,14 +294,7 @@ CREATE INDEX idx_activity_created ON activity_log(created_at);
 -- TRIGGERS FOR AUTOMATIC UPDATES
 -- ============================================
 
--- Update users.updated_at on user changes
 DELIMITER //
-CREATE TRIGGER update_users_timestamp 
-    AFTER UPDATE ON users
-    FOR EACH ROW
-    BEGIN
-        UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-    END;//
 
 -- Update thread reply count when posts are added/removed
 CREATE TRIGGER update_thread_reply_count_insert
@@ -338,6 +333,31 @@ CREATE TRIGGER log_thread_view
             VALUES ('view', 'thread', NEW.id, 'Thread viewed', CURRENT_TIMESTAMP);
         END IF;
     END;//
+
+-- Update user post count (would be called from application)
+CREATE TRIGGER update_user_post_count_insert
+    AFTER INSERT ON forum_posts
+    FOR EACH ROW
+    BEGIN
+        IF NEW.is_deleted = FALSE THEN
+            UPDATE users 
+            SET post_count = post_count + 1
+            WHERE id = NEW.author_id;
+        END IF;
+    END;//
+
+ -- Update user post count on post deletion
+CREATE TRIGGER update_user_post_count_delete
+    AFTER UPDATE ON forum_posts
+    FOR EACH ROW
+    BEGIN
+        IF OLD.is_deleted = FALSE AND NEW.is_deleted = TRUE THEN
+            UPDATE users
+            SET post_count = post_count - 1
+            WHERE id = NEW.author_id;
+        END IF;
+    END;//
+
 DELIMITER ;
 
 -- ============================================
@@ -388,10 +408,23 @@ INSERT INTO forum_categories (name, description, slug, color, icon, sort_order) 
 ('Support', 'Help and support topics', 'support', '#ffc107', 'question-circle', 2),
 ('Off Topic', 'Non-game related discussions', 'off-topic', '#6c757d', 'coffee', 3);
 
--- Insert default admin user
+-- Insert default users
 INSERT INTO users (username, email, password_hash, first_name, last_name, email_verified, is_active) VALUES
-('admin', 'admin@example.com', '$2b$10$FMoxJ3xoI/2DM7guDmD7.u7UB347FUpnrgcZcX9R8SSUTh1r6WmMq', 'Admin', 'User', TRUE, TRUE);
+('admin', 'admin@example.com', '$2b$10$FMoxJ3xoI/2DM7guDmD7.u7UB347FUpnrgcZcX9R8SSUTh1r6WmMq', 'Admin', 'User', TRUE, TRUE),
+('user1', 'user1@example.com', '$2b$10$FMoxJ3xoI/2DM7guDmD7.u7UB347FUpnrgcZcX9R8SSUTh1r6WmMq', 'User', 'One', TRUE, TRUE);
+
+INSERT INTO user_role_assignments (user_id, role_id, assigned_by) VALUES
+(1, 1, 1), -- Admin user assigned admin role
+(2, 3, 1); -- User1 assigned member role
 
 -- Insert sample map
 INSERT INTO maps (name, description, image_url, image_width, image_height, slug, created_by) VALUES
 ('World Map', 'Main game world map showing all locations', '/img/world-map.jpg', 1920, 1080, 'world-map', 1);
+
+-- Insert example thread and posts
+INSERT INTO forum_threads (title, slug, category_id, author_id, is_pinned, is_locked, created_at, updated_at) VALUES
+('Welcome to the MGW Design Forum!', 'welcome-to-mgw-design-forum', 2, 1, TRUE, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO forum_posts (thread_id, author_id, content, content_html, ip_address, created_at, updated_at) VALUES
+(1, 1, 'This is the first post in the MGW Design Forum. Feel free to introduce yourself and start discussions!', '<p>This is the first post in the MGW Design Forum. Feel free to introduce yourself and start discussions!</p>', '127.0.0.1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(1, 2, 'Hello everyone! Excited to be part of this community.', '<p>Hello everyone! Excited to be part of this community.</p>', '127.0.0.1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

@@ -1,5 +1,16 @@
 import {jwtDecode} from 'jwt-decode';
 
+const RoleName = {
+    1: "admin",
+    2: "moderator",
+    3: "member",
+    4: "guest"
+} 
+
+function getRoleName(roleId) {
+    return RoleName[roleId] || "Unknown";
+}
+
 /**
  * User model for managing user-related database operations
  * Corresponds to the users table schema with the following fields:
@@ -30,6 +41,9 @@ class LoggedInUser {
         this.last_login = userData.last_login || null;
         this.login_attempts = userData.login_attempts || 0;
         this.locked_until = userData.locked_until || null;
+        this.post_count = userData.post_count || 0;
+        this.roles = userData.roles || [];
+        this.role = getRoleName(this.roles.length > 0 ? this.roles[0] : null);
     }
 }
 
@@ -37,5 +51,4 @@ function isLoggedIn() {
     return !!(sessionStorage.getItem('jwt') || localStorage.getItem('jwt'));
 }
 
-
-export {LoggedInUser, isLoggedIn};
+export {LoggedInUser, isLoggedIn, getRoleName};

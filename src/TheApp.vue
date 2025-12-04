@@ -87,10 +87,7 @@ onMounted(() => {
 function logout() {
   sessionStorage.removeItem('jwt')
   localStorage.removeItem('jwt')
-  if (router.currentRoute.value.path === '/') {
-    window.location.reload()
-    return
-  }
+  window.location.reload()
 }
 </script>
 

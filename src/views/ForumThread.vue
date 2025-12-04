@@ -1,12 +1,12 @@
 <template>
-    <div class="forum-thread">
+    <div class="forum-thread" v-if="thread">
         <!-- Thread Header -->
         <div class="thread-header">
             <h1 class="thread-title">{{ thread.title }}</h1>
             <div class="thread-meta">
                 <span class="thread-category">{{ thread.category }}</span>
                 <span class="thread-stats">
-                    {{ thread.posts.length }} posts • {{ thread.views }} views
+                    {{ thread.reply_count }} posts • {{ thread.view_count }} views
                 </span>
             </div>
         </div>
@@ -25,8 +25,8 @@
                         <h3 class="author-name">{{ post.author.username }}</h3>
                         <p class="author-role">{{ post.author.role || 'Member' }}</p>
                         <div class="author-stats">
-                            <span>Posts: {{ post.author.postCount || 0 }}</span>
-                            <span>Joined: {{ formatDate(post.author.joinDate) }}</span>
+                            <span>Posts: {{ post.author.post_count || 0 }}</span>
+                            <span>Joined: {{ formatDate(post.author.created_at) }}</span>
                         </div>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
                 <div class="post-content">
                     <div class="post-header">
                         <span class="post-number">#{{ index + 1 }}</span>
-                        <span class="post-date">{{ formatDate(post.createdAt) }}</span>
+                        <span class="post-date">{{ formatDate(post.created_at) }}</span>
                         <div class="post-actions">
                             <button class="action-btn" @click="quotePost(post)" title="Quote this post">
                                 <i class="icon-quote"></i>
@@ -43,15 +43,18 @@
                             <button class="action-btn" @click="reportPost(post)" title="Report post">
                                 <i class="icon-flag"></i>
                             </button>
+                            <button class="action-btn" @click="deletePost(post)" title="Delete post" v-if="index === thread.posts.length - 1 && isLoggedIn() && (post.author.id === user.id || user.roles.includes(1))">
+                                <i class="icon-trash"></i>
+                            </button>
                         </div>
-                    </div>
+                    </div>posts
 
-                    <div class="post-body" v-html="post.content"></div>
+                    <div class="post-body" v-html="post.content_html"></div>
 
                     <!-- Post Footer -->
-                    <div class="post-footer" v-if="post.edited">
+                    <div class="post-footer" v-if="post.edited_at">
                         <span class="edit-info">
-                            Last edited {{ formatDate(post.editedAt) }} by {{ post.editedBy }}
+                            Last edited {{ formatDate(post.edited_at) }} by {{ post.edited_by }}
                         </span>
                     </div>
                 </div>
@@ -59,7 +62,7 @@
         </div>
 
         <!-- Quick Response Box -->
-        <div class="quick-response" v-if="isLoggedIn">
+        <div class="quick-response" v-if="isLoggedIn()">
             <h3>Quick Reply</h3>
             <div class="response-form">
                 <div class="response-toolbar">
@@ -95,7 +98,7 @@
 
         <!-- Login prompt for guests -->
         <div class="login-prompt" v-else>
-            <p>Please <a href="/login" @click.prevent="$emit('login-required')">log in</a> to post a reply.</p>
+            <p>Please <RouterLink to="/login" @click.prevent="$emit('login-required')">log in</RouterLink> to post a reply.</p>
         </div>
 
         <!-- Preview Modal -->
@@ -113,75 +116,35 @@
             </div>
         </div>
     </div>
+    <div v-else class="forum-thread">
+        <p>Loading thread...</p>
+    </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { defineProps, defineEmits } from 'vue'
+import axios from 'axios'
+import { LoggedInUser, isLoggedIn } from '@/models/user'
+import { RouterLink } from 'vue-router'
 
 // Props
 const props = defineProps({
     threadId: {
         type: [String, Number],
         required: true
-    },
-    currentUser: {
-        type: Object,
-        // default: null,
-        default: () => ({
-            id: 3,
-            username: 'AnonymousUser',
-            avatar: null,
-            role: 'Member',
-            postCount: 0,
-            joinDate: '2025-01-01'
-        })
-
     }
 })
+
+
+const user = isLoggedIn() ? new LoggedInUser() : null;
+
 
 // Emits
 const emit = defineEmits(['post-submitted', 'login-required', 'post-quoted', 'post-reported'])
 
 // Reactive data
-const thread = ref({
-    id: props.threadId,
-    title: 'Sample Forum Thread Title',
-    category: 'General Discussion',
-    views: 1234,
-    posts: [
-        {
-            id: 1,
-            content: '<p>This is the original post content. It can contain <strong>HTML formatting</strong> and various elements.</p>',
-            author: {
-                id: 1,
-                username: 'ThreadStarter',
-                avatar: null,
-                role: 'Moderator',
-                postCount: 156,
-                joinDate: '2023-01-15'
-            },
-            createdAt: '2024-12-01T10:00:00Z',
-            edited: false
-        },
-        {
-            id: 2,
-            content: '<p>This is a reply to the original post. Users can discuss topics here.</p>',
-            author: {
-                id: 2,
-                username: 'ForumUser',
-                avatar: null,
-                role: 'Member',
-                postCount: 42,
-                joinDate: '2023-06-20'
-            },
-            createdAt: '2024-12-01T11:30:00Z',
-            edited: true,
-            editedAt: '2024-12-01T11:45:00Z',
-            editedBy: 'ForumUser'
-        }
-    ]
-})
+const thread = ref(null)
 
 const newPost = reactive({
     content: '',
@@ -192,9 +155,6 @@ const isSubmitting = ref(false)
 const showPreview = ref(false)
 const previewContent = ref('')
 const responseTextarea = ref(null)
-
-// Computed
-const isLoggedIn = computed(() => props.currentUser !== null)
 
 // Format tools for the toolbar
 const formatTools = [
@@ -287,31 +247,23 @@ const submitPost = async () => {
 
     try {
         const postData = {
-            threadId: thread.value.id,
-            content: newPost.content,
-            subscribe: newPost.subscribe,
-            author: props.currentUser
+            thread_id: thread.value.id,
+            content_html: newPost.content
         }
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // API call
+        const response = await axios.post(`/api/post`, postData, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('jwt') || localStorage.getItem('jwt')}`
+            }
+        });
 
-        // Add post to thread (in real app, this would come from API response)
-        const newPostObj = {
-            id: Date.now(),
-            content: newPost.content,
-            author: props.currentUser,
-            createdAt: new Date().toISOString(),
-            edited: false
-        }
-
-        thread.value.posts.push(newPostObj)
-
-        // Reset form
-        newPost.content = ''
-        newPost.subscribe = false
+        const addedPost = response.data.data;
+        addedPost; // I need id to route to it in future
 
         emit('post-submitted', postData)
+
+        window.location.reload();
 
     } catch (error) {
         console.error('Failed to submit post:', error)
@@ -326,10 +278,28 @@ const submitFromPreview = () => {
     submitPost()
 }
 
+const deletePost = async (post) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    try {
+        // API call to delete post
+        await axios.delete(`/api/post/${post.id}`, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('jwt') || localStorage.getItem('jwt')}`
+            }
+        });
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Failed to delete post:', error);
+    }
+};
+
 // Load thread data (in real app, this would fetch from API)
 const loadThread = async () => {
     // Simulate API call
-    console.log(`Loading thread ${props.threadId}`)
+    const response = await axios.get(`/api/thread/${props.threadId}`);
+    thread.value = await response.data.data;
 }
 
 onMounted(() => {
@@ -737,6 +707,10 @@ onMounted(() => {
 
 .icon-flag::before {
     content: '⚑';
+}
+
+.icon-trash::before {
+    content: '🗑️';
 }
 
 .icon-bold::before {
